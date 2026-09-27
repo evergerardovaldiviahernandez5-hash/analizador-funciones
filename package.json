@@ -1,0 +1,19 @@
+{
+  "name": "analizador-funciones",
+  "version": "1.0.0",
+  "description": "Explora, grafica y analiza funciones matemáticas offline",
+  "author": "Ever",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "cap:sync": "cap sync android",
+    "cap:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2"
+  }
+}

@@ -1,0 +1,26 @@
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json.bak
+
+# Capacitor / Android build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+android/capacitor-cordova-android-plugins/
+android/local.properties
+android/app/src/main/assets/public/
+android/app/src/main/res/xml/config.xml
+
+# Gradle
+.gradle/
+*.iml
+.idea/
+
+# Backups
+.backup-*/
+*.bak-*
+
+# Sistema
+.DS_Store
+Thumbs.db
