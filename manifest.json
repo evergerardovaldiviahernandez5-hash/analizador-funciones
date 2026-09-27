@@ -9,10 +9,14 @@
   "orientation": "portrait-primary",
   "theme_color": "#0a0a1a",
   "background_color": "#0a0a1a",
-  "categories": ["education", "math", "productivity"],
+  "categories": [
+    "education",
+    "math",
+    "productivity"
+  ],
   "icons": [
     {
-      "src": "icons/icon.png",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"

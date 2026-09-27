@@ -6,7 +6,7 @@
    ========================================================= */
 'use strict';
 
-const CACHE = 'af-cache-v28-0';   // ← bump: invalida cachés viejas
+const CACHE = 'af-cache-v28-1';   // ← bump: invalida cachés viejas
 
 const PRECACHE = [
   './',
@@ -43,6 +43,7 @@ const PRECACHE = [
   './js/ui-v15.js',
   // Iconos
   './icons/icon.png',
+  './icons/icon-192.png',
   './js/ui-v13.js'];
 
 self.addEventListener('install', (event) => {

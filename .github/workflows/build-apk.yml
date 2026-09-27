@@ -2,42 +2,80 @@ name: Build APK
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node 20
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
+
+      - name: Build www/
+        run: |
+          rm -rf www
+          mkdir -p www
+          for item in index.html manifest.json service-worker.js css js icons; do
+            [ -e "$item" ] && cp -r "$item" www/
+          done
+          for f in LICENSE README.md; do
+            [ -f "$f" ] && cp "$f" www/
+          done
+          rm -f www/test*.html www/test*.js
+          echo "www/ listo:"; ls www/
 
       - name: Add Android platform
-        run: npx --yes @capacitor/cli@6 add android
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
 
       - name: Sync Capacitor
-        run: npx --yes @capacitor/cli@6 sync android
+        run: npx cap sync android
 
-      - name: Build debug APK
-        working-directory: android
+      - name: Replace Android launcher icons
         run: |
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon
+          SRC=icons/icon.png
+          test -f "$SRC" || { echo "❌ $SRC no existe"; exit 1; }
+
+          # Borrar adaptive icons (XML) para forzar uso del PNG legacy.
+          # Android 8+ prefiere el XML si existe; al no existir usa el PNG.
+          rm -rf android/app/src/main/res/mipmap-anydpi-v26
+
+          declare -A SIZES=( [mdpi]=48 [hdpi]=72 [xhdpi]=96 [xxhdpi]=144 [xxxhdpi]=192 )
+          for d in "${!SIZES[@]}"; do
+            s=${SIZES[$d]}
+            dir="android/app/src/main/res/mipmap-$d"
+            test -d "$dir" || continue
+            convert "$SRC" -resize ${s}x${s} "$dir/ic_launcher.png"
+            convert "$SRC" -resize ${s}x${s} "$dir/ic_launcher_round.png"
+            echo "  ✓ mipmap-$d: ${s}x${s}"
+          done
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x android/gradlew
+
+      - name: Build Debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -45,3 +83,6 @@ jobs:
           name: analizador-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      - name: Show APK size
+        run: ls -lh android/app/build/outputs/apk/debug/app-debug.apk
