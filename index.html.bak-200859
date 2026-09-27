@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a1a" id="meta-theme-color">
+<meta name="description" content="Explora, grafica y analiza funciones matemáticas offline.">
+<title>Analizador de Funciones · Ever</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon.png">
+<link rel="apple-touch-icon" href="icons/icon.png">
+<link rel="stylesheet" href="js/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="preload" href="js/vendor/katex/katex.min.css" as="style">
+<link rel="preload" href="js/vendor/math.min.js" as="script">
+</head>
+<body>
+
+<a class="skip-link" href="#cards-grid">Saltar al contenido</a>
+<div id="aria-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+<!-- Modal vista previa tarjeta -->
+<div id="modal-overlay" class="modal-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-header">
+      <h3 id="modal-title" class="modal-title">Vista previa</h3>
+      <button type="button" class="modal-close" id="modal-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body"><img id="modal-img" class="modal-img" alt="Tarjeta"></div>
+    <div class="modal-footer"><button type="button" id="modal-download" class="btn-primary">⬇ Descargar PNG</button></div>
+  </div>
+</div>
+
+<!-- Modal biblioteca -->
+<div id="library-overlay" class="modal-overlay" hidden>
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="library-title">
+    <div class="modal-header">
+      <h3 id="library-title" class="modal-title">📚 Ejemplos resueltos</h3>
+      <button type="button" class="modal-close" id="library-close" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body modal-body-list" id="library-body"></div>
+  </div>
+</div>
+
+<!-- HOME -->
+<main id="home-screen" class="screen active" role="main">
+  <header class="home-header" role="banner">
+    <div class="header-actions">
+      <button id="btn-settings" class="settings-toggle" type="button" aria-label="Ajustes" title="Ajustes">
+        <span class="settings-icon" aria-hidden="true">⚙</span>
+      </button>
+    </div>
+    <h1 class="app-title">Analizador <span>de Funciones</span></h1>
+    <p class="app-subtitle">por <strong>Ever</strong></p>
+  </header>
+
+  <section id="history-panel" class="history-panel" style="display:none" aria-label="Recientes" role="region">
+    <div class="history-header">
+      <p class="section-title" id="history-title">Recientes</p>
+      <button id="btn-clear-history" class="btn-link" type="button">Limpiar</button>
+    </div>
+    <div id="history-list" class="history-list" role="list" aria-labelledby="history-title"></div>
+  </section>
+
+  <div class="home-toolbar">
+    <input type="search" id="cards-search" class="cards-search" placeholder="🔍 Buscar función o característica…"
+           aria-label="Buscar función">
+    <button type="button" id="btn-library" class="toolbar-btn" title="Ejemplos resueltos" aria-label="Abrir biblioteca">📚</button>
+    <button type="button" id="btn-view-toggle" class="toolbar-btn" title="Vista compacta/grid" aria-label="Cambiar vista">▦</button>
+  </div>
+
+  <section id="cards-grid" class="cards-grid" aria-label="Tipos de función" role="list" tabindex="-1"></section>
+
+  <footer class="home-footer" role="contentinfo">
+    <small>Hecho por <strong>Ever</strong> · Funciona sin conexión · PWA educativa</small>
+  </footer>
+</main>
+
+<!-- MÓDULO -->
+<main id="module-screen" class="screen" role="main">
+  <header class="module-header" role="banner">
+    <h2 id="module-title" role="button" tabindex="0" class="module-title module-title-clickable">Módulo</h2>
+  </header>
+  <div id="module-container" class="module-container" role="region" aria-label="Módulo"></div>
+</main>
+
+<script src="js/vendor/math.min.js"></script>
+<script src="js/vendor/nerdamer.core.js"></script>
+<script src="js/vendor/Algebra.js"></script>
+<script src="js/vendor/Calculus.js"></script>
+<script src="js/vendor/Solve.js"></script>
+<script src="js/vendor/katex/katex.min.js"></script>
+<script src="js/parser.js"></script>
+<script src="js/math-render.js"></script>
+<script src="js/format.js"></script>
+<script src="js/graph.js"></script>
+<script src="js/custom_icons.js"></script>
+<script src="js/core-utils.js"></script>
+<script src="js/cores.js"></script>
+<script src="js/modules-extra.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/i18n-strings.js"></script>
+<script src="js/app.js"></script>
+<script src="js/ui-enhancements.js"></script>
+<script src="js/ui-v13.js"></script>
+<script src="js/ui-v14.js"></script>
+<script src="js/ui-v15.js"></script>
+<script src="js/stability.js"></script>
+<script src="js/health.js"></script>
+<script src="js/recovery.js"></script>
+<script src="js/input-validation.js"></script>
+<script src="js/guardian.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    var _refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (_refreshing) return; _refreshing = true; window.location.reload();
+    });
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('service-worker.js').then(function (reg) {
+        if (reg.waiting && navigator.serviceWorker.controller) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', function () {
+          var nw = reg.installing; if (!nw) return;
+          nw.addEventListener('statechange', function () {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) nw.postMessage('SKIP_WAITING');
+          });
+        });
+      }).catch(function (err) { console.warn('[SW]', err); });
+    });
+  }
+</script>
+
+
+
+</body>
+</html>
