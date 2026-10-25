@@ -115,8 +115,19 @@
     }
     var panels = qsa(':scope > .panel', container);
     for (var j = 0; j < panels.length; j++) {
-      var t = panels[j].getAttribute('data-tab');
-      panels[j].classList.toggle('tab-hidden', t !== name);
+      var p = panels[j];
+      var t = p.getAttribute('data-tab');
+      var hide = t !== name;
+      p.classList.toggle('tab-hidden', hide);
+      // Reparación UI: la clase .tab-hidden no tenía regla CSS que ocultara,
+      // y los paneles graph/props nacen con display:none inline que nadie
+      // limpiaba. Gestionamos el display explícitamente aquí.
+      if (hide) {
+        p.style.display = 'none';
+      } else if (p.style.display === 'none' && (p.id || '').indexOf('notes-panel-') !== 0) {
+        // Las notas conservan su propio interruptor (📝); no forzarlas.
+        p.style.display = '';
+      }
     }
     container._afActiveTab = name;
     try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }

@@ -24,3 +24,4 @@ android/app/src/main/res/xml/config.xml
 # Sistema
 .DS_Store
 Thumbs.db
+*.disabled

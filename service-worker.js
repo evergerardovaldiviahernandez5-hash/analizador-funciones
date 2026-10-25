@@ -6,13 +6,14 @@
    ========================================================= */
 'use strict';
 
-const CACHE = 'af-cache-v28-1';   // ← bump: invalida cachés viejas
+const CACHE = 'af-cache-v29-uimax';   // ← bump: invalida cachés viejas
 
 const PRECACHE = [
   './',
   './index.html',
   './manifest.json',
   './css/style.css',
+  './css/ui-max.css',
   // Vendor
   './js/vendor/math.min.js',
   './js/vendor/nerdamer.core.js',
@@ -44,7 +45,8 @@ const PRECACHE = [
   // Iconos
   './icons/icon.png',
   './icons/icon-192.png',
-  './js/ui-v13.js'];
+  './js/ui-v13.js',
+  './js/ui-max.js'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

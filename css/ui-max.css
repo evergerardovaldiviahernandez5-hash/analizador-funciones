@@ -1,0 +1,788 @@
+/* =========================================================
+   UI MAX — Capa de diseño definitiva
+   Analizador de Funciones · Ever
+   ---------------------------------------------------------
+   Se carga DESPUÉS de style.css. Solo redefine presentación:
+   no cambia selectores, estructura ni comportamiento.
+   Tres principios:
+     1. Claridad de datos primero (acentos por función,
+        números tabulares, hairlines en vez de cajas).
+     2. Material: cristal con luz superior + aurora ambiental.
+     3. Movimiento con propósito (revelar, confirmar, guiar).
+   ========================================================= */
+
+/* ---------- 0. Tokens ---------- */
+:root {
+  --umx-cyan:   #4be1ec;
+  --umx-lila:   #b892ff;
+  --umx-coral:  #ff6b81;
+  --umx-yellow: #ffd166;
+
+  --umx-cyan-a12: rgba(75, 225, 236, 0.12);
+  --umx-cyan-a25: rgba(75, 225, 236, 0.25);
+  --umx-lila-a25: rgba(184, 146, 255, 0.25);
+
+  /* Anillo de foco unificado */
+  --ring: 0 0 0 3px rgba(75, 225, 236, 0.35);
+
+  /* Luz superior del cristal (highlight interno) */
+  --glass-hi-dark:  inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --glass-hi-light: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* =========================================================
+   1. FONDO AMBIENTAL — aurora + viñeta + rejilla fina
+   ========================================================= */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -12vmax;
+  z-index: 0;
+  pointer-events: none;
+  /* Los acentos vienen del tema activo (--cyan/--lila/--coral) */
+  background:
+    radial-gradient(38vmax 38vmax at 18% 12%, color-mix(in srgb, var(--cyan) 16%, transparent), transparent 60%),
+    radial-gradient(42vmax 42vmax at 85% 22%, color-mix(in srgb, var(--lila) 15%, transparent), transparent 62%),
+    radial-gradient(46vmax 46vmax at 55% 95%, color-mix(in srgb, var(--coral) 10%, transparent), transparent 64%);
+  filter: blur(10px) saturate(115%);
+  animation: umxAurora 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes umxAurora {
+  0%   { transform: translate3d(-2.5%, -1.5%, 0) rotate(-2deg) scale(1); }
+  50%  { transform: translate3d(2%, 1.5%, 0)   rotate(1.5deg) scale(1.06); }
+  100% { transform: translate3d(-1%, 2.5%, 0)  rotate(-1deg)  scale(1.03); }
+}
+
+/* Rejilla matemática finísima + viñeta para asentar la escena */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(0, 0, 0, 0.28) 100%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+  mask-image: radial-gradient(120% 100% at 50% 20%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 100% at 50% 20%, #000 40%, transparent 100%);
+}
+
+/* El contenido siempre por encima de la atmósfera */
+.screen { position: relative; z-index: 1; }
+
+/* Temas claros: aurora pastel, rejilla apenas visible */
+:root[data-theme="light"] body::before,
+:root[data-theme="sepia"] body::before {
+  background:
+    radial-gradient(38vmax 38vmax at 18% 10%, color-mix(in srgb, var(--cyan) 26%, transparent), transparent 60%),
+    radial-gradient(42vmax 42vmax at 85% 20%, color-mix(in srgb, var(--lila) 24%, transparent), transparent 62%),
+    radial-gradient(46vmax 46vmax at 55% 95%, color-mix(in srgb, var(--yellow) 18%, transparent), transparent 64%);
+  filter: blur(14px) saturate(108%);
+}
+:root[data-theme="light"] body::after {
+  background:
+    linear-gradient(rgba(20, 20, 60, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 20, 60, 0.035) 1px, transparent 1px),
+    radial-gradient(120% 90% at 50% 0%, transparent 60%, rgba(80, 80, 140, 0.10) 100%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+}
+:root[data-theme="sepia"] body::after {
+  background:
+    linear-gradient(rgba(90, 60, 20, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 60, 20, 0.05) 1px, transparent 1px),
+    radial-gradient(120% 90% at 50% 0%, transparent 60%, rgba(120, 85, 40, 0.12) 100%);
+  background-size: 44px 44px, 44px 44px, 100% 100%;
+}
+
+/* Alto contraste: sin atmósfera, todo sólido */
+:root[data-theme="contrast"] body::before,
+:root[data-theme="contrast"] body::after { display: none; }
+
+/* =========================================================
+   2. TIPOGRAFÍA Y DETALLES GLOBALES
+   ========================================================= */
+
+/* Números alineados en toda la app (inputs, valores, ecuaciones) */
+.field input,
+.props-list .prop-val,
+.eq-preview,
+.card-eq {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Título principal: gradiente con brillo que respira */
+.app-title {
+  background: linear-gradient(92deg,
+    var(--cyan) 0%, var(--lila) 38%, var(--coral) 68%, var(--cyan) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: umxTitleSheen 9s ease-in-out infinite;
+  filter: drop-shadow(0 2px 14px rgba(139, 124, 246, 0.28));
+}
+@keyframes umxTitleSheen {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.app-subtitle { letter-spacing: 0.06em; }
+.app-subtitle strong {
+  background: linear-gradient(90deg, var(--cyan), var(--lila));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Tema claro: el gradiente del título necesita stops más profundos */
+:root[data-theme="light"] .app-title {
+  background: linear-gradient(92deg,
+    #0e7490 0%, #7c5cd6 42%, #e0344f 72%, #0e7490 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: none;
+}
+:root[data-theme="light"] .app-subtitle strong,
+:root[data-theme="light"] .home-footer strong {
+  background: linear-gradient(90deg, #0e7490, #7c5cd6);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Selección de texto acorde al tema */
+::selection { background: color-mix(in srgb, var(--cyan) 32%, transparent); color: inherit; }
+:root[data-theme="light"] ::selection { background: rgba(14, 116, 144, 0.22); }
+:root[data-theme="sepia"] ::selection { background: rgba(139, 90, 43, 0.25); }
+
+/* Scrollbar fina y temática */
+* { scrollbar-width: thin; scrollbar-color: rgba(140, 140, 190, 0.45) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 190, 0.38);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: rgba(75, 225, 236, 0.55); background-clip: padding-box; }
+
+/* Foco visible unificado y elegante */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+  border-radius: var(--radius-sm);
+}
+:root[data-theme="contrast"] :focus-visible {
+  box-shadow: 0 0 0 3px #ffff00;
+}
+
+/* =========================================================
+   3. HOME — cabecera, buscador, toolbar
+   ========================================================= */
+/* El título con drop-shadow crea contexto de apilado:
+   hay que elevar las acciones de cabecera sobre él. */
+.header-actions { z-index: 10; }
+
+.settings-toggle {
+  box-shadow: var(--glass-hi-dark), var(--elev-1);
+  transition: transform 0.2s var(--ease-spring), background 0.15s ease, box-shadow 0.2s ease;
+}
+.settings-toggle:hover { transform: rotate(38deg) scale(1.08); box-shadow: var(--glass-hi-dark), var(--elev-2); }
+.settings-toggle:active { transform: rotate(38deg) scale(0.92); }
+:root[data-theme="light"] .settings-toggle { box-shadow: var(--glass-hi-light), var(--elev-1); }
+
+/* Buscador: píldora de cristal con halo al enfocar */
+.cards-search {
+  border-radius: 14px;
+  box-shadow: var(--glass-hi-dark);
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.2s ease;
+}
+:root[data-theme="light"] .cards-search { box-shadow: var(--glass-hi-light); }
+.cards-search:focus {
+  border-color: var(--cyan);
+  box-shadow: var(--ring), var(--glass-hi-dark);
+}
+:root[data-theme="light"] .cards-search:focus { box-shadow: var(--ring), var(--glass-hi-light); }
+
+.toolbar-btn {
+  border-radius: 14px;
+  box-shadow: var(--glass-hi-dark);
+  transition: transform 0.18s var(--ease-spring), background 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.2s ease;
+}
+:root[data-theme="light"] .toolbar-btn { box-shadow: var(--glass-hi-light); }
+.toolbar-btn:hover { transform: translateY(-2px); border-color: var(--cyan); box-shadow: var(--elev-2); }
+.toolbar-btn:active { transform: scale(0.92); }
+
+/* =========================================================
+   4. TARJETAS — cristal con luz, brillo que sigue al dedo
+   ========================================================= */
+.card {
+  border-radius: 20px;
+  box-shadow: var(--glass-hi-dark), var(--elev-2);
+  transition: transform 0.22s var(--ease-out-soft),
+              border-color 0.2s ease,
+              box-shadow 0.25s ease,
+              background 0.2s ease;
+  /* Variables del brillo (las mueve ui-max.js) */
+  --mx: 50%;
+  --my: 0%;
+}
+:root[data-theme="light"] .card { box-shadow: var(--glass-hi-light), var(--elev-2); }
+
+/* Halo de acento que sigue al puntero */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(220px circle at var(--mx) var(--my),
+              var(--accent, var(--cyan)) 0%, transparent 65%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+:root[data-theme="light"] .card::before { mix-blend-mode: normal; opacity: 0; }
+
+.card:hover, .card:focus-visible {
+  transform: translateY(-4px) scale(1.02);
+  border-color: color-mix(in srgb, var(--accent, var(--cyan)) 65%, transparent);
+  box-shadow: var(--glass-hi-dark), var(--elev-3),
+              0 12px 32px -12px var(--accent, var(--cyan));
+}
+:root[data-theme="light"] .card:hover,
+:root[data-theme="light"] .card:focus-visible {
+  box-shadow: var(--glass-hi-light), var(--elev-3),
+              0 14px 30px -14px var(--accent, var(--cyan));
+}
+.card:hover::before, .card:focus-visible::before { opacity: 0.55; }
+.card:active { transform: scale(0.975); transition-duration: 0.08s; }
+
+/* Barra de acento inferior → gradiente luminoso */
+.card::after {
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent, var(--accent, var(--cyan)) 30%,
+    var(--accent, var(--cyan)) 70%, transparent);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px var(--accent, var(--cyan)));
+  transition: height 0.2s ease, filter 0.2s ease;
+}
+.card:hover::after { height: 4px; filter: drop-shadow(0 0 10px var(--accent, var(--cyan))); }
+
+/* Icono con resplandor propio */
+.card-icon {
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45))
+          drop-shadow(0 0 10px color-mix(in srgb, var(--accent, var(--cyan)) 30%, transparent));
+  transition: transform 0.25s var(--ease-spring);
+}
+.card:hover .card-icon { transform: scale(1.08) rotate(-2deg); }
+:root[data-theme="light"] .card-icon {
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.18));
+}
+
+/* Chip de categoría: más fino, con punto de acento */
+.card-chip {
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, var(--cyan)) 40%, transparent);
+}
+
+/* Vista compacta mantiene el lenguaje */
+.cards-grid.compact .card { border-radius: 16px; }
+
+/* =========================================================
+   5. MÓDULO — cabecera, tabs tipo píldora deslizante
+   ========================================================= */
+.module-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  margin: -16px -16px 14px;
+  padding: 12px 16px 10px;
+  background: color-mix(in srgb, var(--bg-1) 55%, transparent);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.module-header.is-scrolled {
+  border-bottom-color: var(--border);
+  box-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.55);
+}
+:root[data-theme="light"] .module-header {
+  background: color-mix(in srgb, var(--bg-1) 68%, transparent);
+}
+:root[data-theme="light"] .module-header.is-scrolled {
+  box-shadow: 0 12px 24px -18px rgba(40, 40, 90, 0.25);
+}
+.module-title {
+  letter-spacing: -0.01em;
+  background: linear-gradient(90deg, var(--text), var(--text));
+  -webkit-background-clip: text; background-clip: text;
+}
+
+.btn-back {
+  border-radius: 12px;
+  box-shadow: var(--glass-hi-dark);
+  transition: transform 0.18s var(--ease-spring), background 0.15s ease;
+}
+:root[data-theme="light"] .btn-back { box-shadow: var(--glass-hi-light); }
+.btn-back:hover { transform: translateX(-2px); }
+.btn-back:active { transform: scale(0.94); }
+
+/* Tabs: contenedor píldora, activo con gradiente + halo */
+.module-tabs {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  box-shadow: var(--glass-hi-dark), var(--elev-1);
+  gap: 4px;
+}
+:root[data-theme="light"] .module-tabs { box-shadow: var(--glass-hi-light), var(--elev-1); }
+.tab-btn {
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.tab-btn:not(.active):hover { background: var(--glass); }
+.tab-btn.active {
+  border-radius: 999px;
+  box-shadow: 0 6px 18px -6px rgba(75, 225, 236, 0.65),
+              inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-0.5px);
+}
+.tab-btn:active { transform: scale(0.96); }
+
+/* =========================================================
+   6. PANELES Y PANTALLA DE ECUACIÓN
+   ========================================================= */
+.panel {
+  border-radius: 20px;
+  box-shadow: var(--glass-hi-dark), var(--elev-2);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+:root[data-theme="light"] .panel { box-shadow: var(--glass-hi-light), var(--elev-2); }
+.panel:hover { border-color: color-mix(in srgb, var(--border) 60%, var(--accent, var(--cyan)) 40%); }
+
+.section-title {
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* La ecuación como "pantalla" de instrumento */
+.eq-preview {
+  position: relative;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.20));
+  border: 1px solid var(--border);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  text-shadow: 0 0 18px rgba(255, 209, 102, 0.35);
+  scrollbar-width: thin;
+}
+:root[data-theme="light"] .eq-preview {
+  background: linear-gradient(180deg, rgba(20, 20, 60, 0.07), rgba(20, 20, 60, 0.04));
+  box-shadow: inset 0 2px 8px rgba(20, 20, 60, 0.08),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+  text-shadow: none;
+}
+.eq-preview .katex { text-shadow: 0 0 22px rgba(255, 209, 102, 0.30); }
+:root[data-theme="light"] .eq-preview .katex { text-shadow: none; }
+
+/* =========================================================
+   7. PRESETS, CAMPOS Y VALIDACIÓN
+   ========================================================= */
+.preset-btn {
+  border-radius: 999px;
+  font-weight: 500;
+  transition: transform 0.18s var(--ease-spring), background 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.2s ease;
+}
+.preset-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -4px var(--accent, var(--cyan));
+}
+.preset-btn:active { transform: scale(0.94); }
+
+.field label {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+.field input {
+  border-radius: 12px;
+  transition: border-color 0.18s ease, box-shadow 0.2s ease, background 0.18s ease;
+}
+.field input:focus {
+  border-color: var(--accent, var(--cyan));
+  box-shadow: var(--ring);
+}
+/* Estados de validación (los pone input-validation.js) */
+.field.af-field-ok input {
+  border-color: rgba(52, 211, 153, 0.55);
+}
+.field.af-field-bad input,
+.field input.af-input-error {
+  border-color: rgba(255, 107, 129, 0.75);
+  box-shadow: 0 0 0 3px rgba(255, 107, 129, 0.18);
+  animation: umxShake 0.32s ease;
+}
+@keyframes umxShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+}
+.af-ok-mark { filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.6)); }
+.af-field-error {
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* =========================================================
+   8. SLIDERS — pista con relleno de acento + thumb luminoso
+   ========================================================= */
+.field-slider {
+  height: 6px;
+  border-radius: 999px;
+  /* --p (0-100) lo mantiene ui-max.js */
+  background: linear-gradient(90deg,
+              var(--accent, var(--cyan)) 0%,
+              color-mix(in srgb, var(--accent, var(--cyan)) 55%, var(--lila)) var(--p, 50%),
+              rgba(255, 255, 255, 0.14) var(--p, 50%));
+  transition: box-shadow 0.2s ease;
+}
+:root[data-theme="light"] .field-slider {
+  background: linear-gradient(90deg,
+              var(--accent, var(--cyan)) 0%,
+              color-mix(in srgb, var(--accent, var(--cyan)) 55%, var(--lila)) var(--p, 50%),
+              rgba(20, 20, 60, 0.12) var(--p, 50%));
+}
+.field-slider::-webkit-slider-thumb {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+              0 0 0 5px color-mix(in srgb, var(--accent, var(--cyan)) 18%, transparent),
+              0 0 14px color-mix(in srgb, var(--accent, var(--cyan)) 55%, transparent);
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.2s ease;
+}
+.field-slider::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+              0 0 0 5px color-mix(in srgb, var(--accent, var(--cyan)) 18%, transparent),
+              0 0 14px color-mix(in srgb, var(--accent, var(--cyan)) 55%, transparent);
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.2s ease;
+}
+.field-slider:hover::-webkit-slider-thumb,
+.field-slider:focus-visible::-webkit-slider-thumb { transform: scale(1.18); }
+.field-slider:hover::-moz-range-thumb,
+.field-slider:focus-visible::-moz-range-thumb { transform: scale(1.18); }
+.field-slider:active::-webkit-slider-thumb { transform: scale(1.05); }
+.field-slider:focus-visible { box-shadow: none; }
+
+.slider-play {
+  width: 28px; height: 28px;
+  transition: transform 0.18s var(--ease-spring), background 0.15s ease, color 0.15s ease;
+}
+.slider-play:hover { transform: scale(1.12); }
+.slider-play:active { transform: scale(0.9); }
+.slider-play.active { box-shadow: 0 0 14px rgba(75, 225, 236, 0.5); }
+
+/* =========================================================
+   9. BOTONES
+   ========================================================= */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 26px -10px rgba(75, 225, 236, 0.55),
+              inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.16s var(--ease-spring), box-shadow 0.25s ease, filter 0.18s ease;
+}
+/* Barrido de luz al pasar el cursor */
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: -80%;
+  width: 55%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s var(--ease-out-soft);
+  pointer-events: none;
+}
+.btn-primary:hover::before { left: 130%; }
+.btn-primary:hover {
+  filter: brightness(1.07);
+  box-shadow: 0 14px 34px -10px rgba(75, 225, 236, 0.7),
+              inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: scale(0.975); }
+:root[data-theme="contrast"] .btn-primary::before { display: none; }
+
+.btn-mini {
+  border-radius: 12px;
+  font-weight: 600;
+  transition: transform 0.16s var(--ease-spring), background 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.2s ease;
+}
+.btn-mini:hover { transform: translateY(-1px); box-shadow: var(--elev-1); }
+.btn-mini:active { transform: scale(0.95); }
+.graph-actions .btn-mini.active {
+  box-shadow: 0 6px 16px -6px rgba(75, 225, 236, 0.6);
+}
+
+/* =========================================================
+   10. GRÁFICO — marco de instrumento
+   ========================================================= */
+.canvas-wrap {
+  border-radius: 20px;
+  box-shadow: var(--glass-hi-dark), var(--elev-2),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+:root[data-theme="light"] .canvas-wrap { box-shadow: var(--glass-hi-light), var(--elev-2); }
+#graph-canvas, .graph-canvas { border-radius: 20px; }
+
+.graph-extra {
+  border-left: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--umx-cyan-a12), transparent 80%);
+  box-shadow: inset 2px 0 0 var(--cyan);
+}
+
+/* =========================================================
+   11. PROPIEDADES — filas con hairlines, no cajas
+   ========================================================= */
+.props-list { gap: 0; }
+.props-list li {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 10px 6px;
+  transition: background 0.15s ease, padding-left 0.2s ease;
+}
+.props-list li:first-child { border-top: 1px solid var(--border); }
+.props-list li:hover {
+  background: linear-gradient(90deg, var(--umx-cyan-a12), transparent 70%);
+  padding-left: 12px;
+}
+.props-list .prop-key {
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  font-size: 0.72rem;
+}
+.props-list .prop-val { font-size: 0.92rem; }
+
+/* =========================================================
+   12. MODALES — cristal profundo + entrada con escala
+   ========================================================= */
+.modal-overlay {
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+.modal {
+  border-radius: 24px;
+  box-shadow: var(--glass-hi-dark), var(--elev-4);
+  animation: umxModalIn 0.32s var(--ease-spring);
+}
+:root[data-theme="light"] .modal { box-shadow: var(--glass-hi-light), var(--elev-4); }
+@keyframes umxModalIn {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-title { letter-spacing: -0.01em; }
+.modal-close {
+  border-radius: 50%;
+  transition: transform 0.2s var(--ease-spring), background 0.15s ease;
+}
+.modal-close:hover { transform: rotate(90deg) scale(1.08); }
+
+/* Biblioteca de ejemplos */
+.library-item {
+  border-radius: 14px;
+  transition: transform 0.2s var(--ease-out-soft), border-color 0.15s ease,
+              background 0.15s ease, box-shadow 0.2s ease;
+}
+.library-item:hover {
+  transform: translateX(5px);
+  box-shadow: var(--elev-1), -3px 0 0 var(--accent, var(--cyan)) inset;
+}
+.library-item:active { transform: translateX(5px) scale(0.98); }
+
+/* =========================================================
+   13. AJUSTES — pestañas y muestras de tema
+   ========================================================= */
+.settings-tabs { gap: 6px; }
+.settings-tab {
+  border-radius: 999px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.16s var(--ease-spring);
+}
+.settings-tab:hover { background: var(--glass); }
+.settings-tab:active { transform: scale(0.95); }
+.settings-tab.active {
+  background: linear-gradient(135deg, var(--cyan), var(--lila));
+  color: #0a0a1a;
+  font-weight: 700;
+  box-shadow: 0 6px 16px -6px rgba(75, 225, 236, 0.55);
+}
+
+.theme-preview {
+  border-radius: 16px;
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.25s ease, border-color 0.2s ease;
+}
+.theme-preview:hover { transform: translateY(-3px) scale(1.03); box-shadow: var(--elev-3); }
+.theme-preview:active { transform: scale(0.96); }
+
+.lang-list button, .lang-list .lang-row {
+  border-radius: 12px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+/* =========================================================
+   14. HISTORIAL
+   ========================================================= */
+.history-panel { border-radius: 20px; box-shadow: var(--glass-hi-dark), var(--elev-3); }
+:root[data-theme="light"] .history-panel { box-shadow: var(--glass-hi-light), var(--elev-3); }
+.history-item {
+  border-radius: 12px;
+  transition: transform 0.18s var(--ease-out-soft), background 0.15s ease, border-color 0.15s ease;
+}
+.history-item:hover { transform: translateX(3px); }
+
+/* =========================================================
+   15. NAVEGACIÓN INFERIOR — cápsula flotante
+   ========================================================= */
+@media (max-width: 640px) {
+  .bottom-nav {
+    border-radius: 26px;
+    box-shadow: var(--glass-hi-dark), var(--elev-4);
+  }
+  .bn-item { border-radius: 18px; transition: color 0.2s ease, background 0.25s ease, transform 0.18s var(--ease-spring); }
+  .bn-item:active { transform: scale(0.9); }
+  .bn-item.active, .bn-item.bn-active {
+    background: linear-gradient(135deg, rgba(75, 225, 236, 0.20), rgba(184, 146, 255, 0.16));
+    box-shadow: inset 0 0 0 1px rgba(75, 225, 236, 0.30);
+    color: var(--cyan);
+  }
+  .bn-item.active::before, .bn-item.bn-active::before { display: none; }
+  .bn-item .bn-icon { transition: transform 0.25s var(--ease-spring); }
+  .bn-item.active .bn-icon, .bn-item.bn-active .bn-icon { transform: translateY(-1px) scale(1.12); }
+}
+:root[data-theme="light"] .bn-item.active,
+:root[data-theme="light"] .bn-item.bn-active { color: #0e7490; }
+:root[data-theme="contrast"] .bn-item.active,
+:root[data-theme="contrast"] .bn-item.bn-active {
+  background: transparent; box-shadow: inset 0 0 0 2px #ffff00; color: #ffff00;
+}
+
+/* =========================================================
+   16. TOAST
+   ========================================================= */
+.toast {
+  border-radius: 999px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  letter-spacing: 0.01em;
+}
+
+/* =========================================================
+   17. FOOTER
+   ========================================================= */
+.home-footer strong {
+  background: linear-gradient(90deg, var(--cyan), var(--lila));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  letter-spacing: 0.04em;
+}
+
+/* =========================================================
+   17b. SEPIA — tratamiento de superficie tipo papel
+   ========================================================= */
+:root[data-theme="sepia"] .card,
+:root[data-theme="sepia"] .panel,
+:root[data-theme="sepia"] .modal,
+:root[data-theme="sepia"] .history-panel,
+:root[data-theme="sepia"] .canvas-wrap,
+:root[data-theme="sepia"] .module-tabs,
+:root[data-theme="sepia"] .settings-toggle,
+:root[data-theme="sepia"] .toolbar-btn,
+:root[data-theme="sepia"] .btn-back {
+  box-shadow: var(--glass-hi-light), var(--elev-2);
+}
+:root[data-theme="sepia"] .card::before { mix-blend-mode: normal; }
+:root[data-theme="sepia"] .card:hover,
+:root[data-theme="sepia"] .card:focus-visible {
+  box-shadow: var(--glass-hi-light), var(--elev-3),
+              0 14px 30px -14px var(--accent, var(--cyan));
+}
+:root[data-theme="sepia"] .field input { background: #fdf6e3; }
+:root[data-theme="sepia"] .eq-preview {
+  background: linear-gradient(180deg, rgba(90, 60, 20, 0.08), rgba(90, 60, 20, 0.04));
+  box-shadow: inset 0 2px 8px rgba(90, 60, 20, 0.10),
+              inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+  text-shadow: none;
+}
+:root[data-theme="sepia"] .eq-preview .katex { text-shadow: none; }
+:root[data-theme="sepia"] .module-header {
+  background: color-mix(in srgb, var(--bg-1) 70%, transparent);
+}
+:root[data-theme="sepia"] .module-header.is-scrolled {
+  box-shadow: 0 12px 24px -18px rgba(90, 60, 20, 0.30);
+}
+@media (max-width: 640px) {
+  :root[data-theme="sepia"] .bn-item.active,
+  :root[data-theme="sepia"] .bn-item.bn-active { color: #7a4a1a; }
+}
+
+/* =========================================================
+   18. MOVIMIENTO REDUCIDO Y CONTRASTE — siempre respetados
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .app-title { animation: none; }
+  .btn-primary::before { display: none; }
+  .modal { animation: none; }
+  .field input.af-input-error, .field.af-field-bad input { animation: none; }
+}
+
+/* Alto contraste: sin brillos ni mezclas, todo sólido */
+:root[data-theme="contrast"] .card::before { display: none; }
+:root[data-theme="contrast"] .card::after { filter: none; }
+:root[data-theme="contrast"] .card-icon { filter: none; }
+:root[data-theme="contrast"] .app-title,
+:root[data-theme="contrast"] .app-subtitle strong,
+:root[data-theme="contrast"] .home-footer strong {
+  background: none; -webkit-background-clip: border-box; background-clip: border-box;
+  color: #ffff00; filter: none; animation: none;
+}
+:root[data-theme="contrast"] .eq-preview { text-shadow: none; box-shadow: none; }
+:root[data-theme="contrast"] .props-list li:hover { background: #000000; }
+:root[data-theme="contrast"] .af-ok-mark { filter: none; }
+
+/* =========================================================
+   19. ESCRITORIO — refinamientos de densidad
+   ========================================================= */
+@media (min-width: 900px) {
+  .screen { max-width: 1040px; }
+  .cards-grid { gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .card { padding: 20px 18px 16px; }
+  .card-icon { width: 52px; height: 52px; }
+  .card-name { font-size: 1.02rem; }
+  .module-container { gap: 18px; }
+  .panel { padding: 18px; }
+}

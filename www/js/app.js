@@ -83,11 +83,16 @@
   // =========================================================
   var THEME_KEY = 'af:theme';
   var THEMES = ['dark', 'light', 'contrast'];
+  // Mapa completo de colores (alineado con settings.js)
+  var THEME_META = {
+    dark: '#0a0a1a', light: '#f7f8fc', contrast: '#000000',
+    ocean: '#041a2e', sunset: '#1a0a0f', forest: '#0a1a0f',
+    royal: '#150a2e', mono: '#1a1a1a', neon: '#0a0014', sepia: '#f4ecd8'
+  };
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     var meta = document.getElementById('meta-theme-color');
-    if (meta) meta.setAttribute('content',
-      theme === 'dark' ? '#0a0a1a' : theme === 'light' ? '#f7f8fc' : '#000000');
+    if (meta && THEME_META[theme]) meta.setAttribute('content', THEME_META[theme]);
     var btn = document.getElementById('btn-theme');
     if (btn) {
       var next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
@@ -98,7 +103,10 @@
   function getInitialTheme() {
     try {
       var saved = localStorage.getItem(THEME_KEY);
-      if (THEMES.indexOf(saved) >= 0) return saved;
+      // Reparación UI: antes solo se aceptaban 'dark'/'light'/'contrast'
+      // y al recargar se perdían los temas del panel de Ajustes
+      // (ocean, sunset, forest, royal, mono, neon, sepia).
+      if (saved && THEME_META.hasOwnProperty(saved)) return saved;
     } catch (e) {}
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
     return 'dark';
@@ -278,18 +286,26 @@
       if (!groups.hasOwnProperty(gid)) continue;
       var mod = FUNCTIONS.find(function (f) { return f.id === gid; });
       if (!mod) continue;
-      var modName = (window._afI18nFull && mod.nameKey)
-        ? window._afI18nFull.t(mod.nameKey)
-        : mod.name;
+      // Reparación UI: t() devuelve la clave cruda si falta la traducción;
+      // en ese caso usamos el nombre/descripción legibles del propio item.
+      var modName = mod.name;
+      if (window._afI18nFull && mod.nameKey) {
+        var _tm = window._afI18nFull.t(mod.nameKey);
+        if (_tm && _tm !== mod.nameKey) modName = _tm;
+      }
       html += '<div class="library-group"><p class="library-group-title">' + modName + '</p>';
       for (var j = 0; j < groups[gid].length; j++) {
         var e = groups[gid][j];
-        var itemName = (window._afI18nFull && e.nameKey)
-          ? window._afI18nFull.t(e.nameKey)
-          : e.name;
-        var itemDesc = (window._afI18nFull && e.descKey)
-          ? window._afI18nFull.t(e.descKey)
-          : e.desc;
+        var itemName = e.name;
+        if (window._afI18nFull && e.nameKey) {
+          var _tn = window._afI18nFull.t(e.nameKey);
+          if (_tn && _tn !== e.nameKey) itemName = _tn;
+        }
+        var itemDesc = e.desc;
+        if (window._afI18nFull && e.descKey) {
+          var _td = window._afI18nFull.t(e.descKey);
+          if (_td && _td !== e.descKey) itemDesc = _td;
+        }
         html +=
           '<button type="button" class="library-item" style="--accent:' + mod.accent + '" ' +
             'data-id="' + gid + '" data-params=\'' + JSON.stringify(e.params) + '\'>' +
